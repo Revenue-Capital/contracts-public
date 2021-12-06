@@ -34,7 +34,9 @@ contract PresaleStaged is Ownable {
     event SaleStarted();
     event SaleStopped();
     event Allocated(address indexed addr, uint256 alloc, uint256 stage);
+    event Withdrawn(uint256 amount);
     event PriceChanged(uint256 price);
+    event StageAdded(uint256 usdMaxLimit);
 
     function startSale(uint256 _minAmount, uint256 _maxAmount) external onlyOwner {
         require(!wasStarted, 'PresaleStaged: Sale was already started');
@@ -81,6 +83,7 @@ contract PresaleStaged is Ownable {
                 tokensBNBMaxLimit: 0,
                 tokensBNBAcquired: 0
             }));
+            emit StageAdded(limits[i]);
         }
         maxStage = maxStage.add(limits.length);
     }
@@ -99,7 +102,9 @@ contract PresaleStaged is Ownable {
     }
 
     function withdraw() external onlyOwner {
-        Address.sendValue(payable(owner()), address(this).balance);
+        uint256 currentBalance = address(this).balance;
+        Address.sendValue(payable(owner()), currentBalance);
+        emit Withdrawn(currentBalance);
     }
 
     function allocation(address addr) public view returns (uint256) {

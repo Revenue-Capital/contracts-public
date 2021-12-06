@@ -27,51 +27,51 @@ contract AntiBot is Ownable {
     function initAntibot(uint256 tradingStart, uint256 maxValue, uint256 minDelay) public onlyOwner() {
         require(!initialized, "Antibot: Already initialized");
         initialized = true;
-        _isWhitelisted[owner()] = true;
-        startTimestamp = tradingStart;
-        transferMaxValue = maxValue;
-        transferMinDelay = minDelay;
-        restrictionActive = true;
+        whitelistAccount(owner(), true);
+        setStartTimestamp(tradingStart);
+        setTransferMaxValue(maxValue);
+        setTransferMinDelay(minDelay);
+        setRestrictionActive(true);
     }
 
-    function setStartTimestamp(uint256 _time) external onlyOwner() {
-        require(startTimestamp > block.timestamp, "Antibot: Too late");
+    function setStartTimestamp(uint256 _time) public onlyOwner() {
+        require(startTimestamp == 0 || startTimestamp > block.timestamp, "Antibot: Too late");
         startTimestamp = _time;
         emit StartTimestampChanged(startTimestamp);
     }
 
-    function setTransferMaxValue(uint256 _value) external onlyOwner() {
+    function setTransferMaxValue(uint256 _value) public onlyOwner() {
         transferMaxValue = _value;
         emit TransferMaxValueChanged(transferMaxValue);
     }
 
-    function setTransferMinDelay(uint256 _delay) external onlyOwner() {
+    function setTransferMinDelay(uint256 _delay) public onlyOwner() {
         transferMinDelay = _delay;
         emit TransferMinDelayChanged(transferMinDelay);
     }
 
-    function setRestrictionActive(bool _active) external onlyOwner() {
+    function setRestrictionActive(bool _active) public onlyOwner() {
         restrictionActive = _active;
         emit RestrictionActiveChanged(restrictionActive);
     }
 
-    function unthrottleAccount(address _account, bool _unthrottled) external onlyOwner() {
+    function unthrottleAccount(address _account, bool _unthrottled) public onlyOwner() {
         require(_account != address(0), "Zero address");
         _isUnthrottled[_account] = _unthrottled;
         emit MarkedUnthrottled(_account, _unthrottled);
     }
 
-    function isUnthrottled(address account) external view returns (bool) {
+    function isUnthrottled(address account) public view returns (bool) {
         return _isUnthrottled[account];
     }
 
-    function whitelistAccount(address _account, bool _whitelisted) external onlyOwner() {
+    function whitelistAccount(address _account, bool _whitelisted) public onlyOwner() {
         require(_account != address(0), "Zero address");
         _isWhitelisted[_account] = _whitelisted;
         emit MarkedWhitelisted(_account, _whitelisted);
     }
 
-    function isWhitelisted(address account) external view returns (bool) {
+    function isWhitelisted(address account) public view returns (bool) {
         return _isWhitelisted[account];
     }
 

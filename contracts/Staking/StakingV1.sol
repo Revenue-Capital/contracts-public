@@ -50,6 +50,8 @@ contract StakingV1 is Ownable {
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event Claim(address indexed user, uint256 indexed pid, uint256 amount);
     event WithdrawRemaining(address indexed user, uint256 amount);
+    event TokenAddressChanged(address indexed token);
+    event PoolAdded(uint256 share, uint256 timer, uint256 limit);
 
     event RewardChanged(uint256 reward);
     event StartBlockChanged(uint256 block);
@@ -68,6 +70,7 @@ contract StakingV1 is Ownable {
         require(address(_token) != address(0), 'Staking: token address needs to be different than zero!');
         require(address(token) == address(0), 'Staking: token already set!');
         token = _token;
+        emit TokenAddressChanged(address(token));
     }
 
     function setTokenPerBlock(uint256 _tokenPerBlock) public onlyOwner {
@@ -95,7 +98,7 @@ contract StakingV1 is Ownable {
         emit CloseBlockChanged(closeBlock);
     }
 
-    function withdrawRemaining() public onlyOwner {
+    function withdrawRemaining() external onlyOwner {
         require(startBlock != 0, 'Staking: start block needs to be set first');
         require(closeBlock != 0, 'Staking: close block needs to be set first');
         require(block.number > closeBlock, 'Staking: withdrawal of remaining funds not ready yet');
@@ -245,6 +248,8 @@ contract StakingV1 is Ownable {
         }));
         totalPoolShare = totalPoolShare.add(_poolShare);
         maxPid = maxPid.add(1);
+
+        emit PoolAdded(_poolShare, _lockupTimer, _tokenLimited);
     }
 
     function updatePool(uint256 pid) internal {

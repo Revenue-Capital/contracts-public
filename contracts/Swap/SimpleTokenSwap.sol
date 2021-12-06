@@ -27,6 +27,9 @@ contract SimpleTokenSwap is Ownable {
     event CloseBlockChanged(uint256 block);
     event SwapAddressChanged(address indexed addr);
     event SwapConversionChanged(uint256 srcRatio, uint256 trgRatio);
+    event TokenPairChanged(address indexed srcTokenAddress, uint256 srcTokenDec, address indexed trgTokenAddress, uint256 trgTokenDec);
+    event Withdrawn(uint256 srcAmount, uint256 trgAmount);
+    event Exchanged(uint256 srcAmount, uint256 trgAmount);
 
     constructor() {
         setSwapAddress(0x000000000000000000000000000000000000dEaD);
@@ -46,6 +49,8 @@ contract SimpleTokenSwap is Ownable {
         trgToken = trgTokenAddress;
         srcTokenDecimals = srcTokenDec;
         trgTokenDecimals = trgTokenDec;
+        emit TokenPairChanged(address(srcToken), srcTokenDecimals, address(trgToken), trgTokenDecimals);
+
     }
 
     function setStartBlock(uint256 _startBlock) public onlyOwner {
@@ -76,8 +81,11 @@ contract SimpleTokenSwap is Ownable {
     }
 
     function withdrawTokens() external onlyOwner {
-        srcToken.safeTransfer(owner(), srcToken.balanceOf(address(this)));
-        trgToken.safeTransfer(owner(), trgToken.balanceOf(address(this)));
+        uint256 srcBalance = srcToken.balanceOf(address(this));
+        uint256 trgBalance = trgToken.balanceOf(address(this));
+        srcToken.safeTransfer(owner(), srcBalance);
+        trgToken.safeTransfer(owner(), trgBalance);
+        emit Withdrawn(srcBalance, trgBalance);
     }
 
     function exchangeTokens(uint256 amount) external {
@@ -106,5 +114,7 @@ contract SimpleTokenSwap is Ownable {
 
         srcToken.safeTransferFrom(address(msg.sender), swapAddress, srcAmount);
         trgToken.safeTransfer(address(msg.sender), trgAmount);
+
+        emit Exchanged(srcAmount, trgAmount);
     }
 }
